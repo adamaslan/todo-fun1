@@ -1,44 +1,48 @@
-// Timer.js;
-import React, { useEffect, useState } from "react";
-const useTimer = (length, callback = () => {}) => {
-  const [startTime, setStartTime] = useState(new Date());
-  const [elapsed, setElapsed] = useState(0);
+import React, { useState, useEffect } from "react";
+
+const Timer = () => {
+  const [seconds, setSeconds] = useState(0);
+  const [isActive, setIsActive] = useState(false);
+
+  function toggle() {
+    setIsActive(!isActive);
+  }
+
+  function reset() {
+    setSeconds(0);
+    setIsActive(false);
+  }
 
   useEffect(() => {
-    // We don't do anything if we've already re-rendered after we're done.
-    if (elapsed >= length) {
-      return;
+    let interval = null;
+    if (isActive) {
+      interval = setInterval(() => {
+        setSeconds((seconds) => seconds + 1);
+      }, 1000);
+    } else if (!isActive && seconds !== 0) {
+      clearInterval(interval);
     }
-
-    const interval = setInterval(() => {
-      const newElapsed = Math.round((new Date() - startTime) / 1000);
-
-      // Update only if a second has actually passed.
-      if (newElapsed > elapsed) {
-        setElapsed(newElapsed);
-
-        // If our time is done we call our callback.
-        if (newElapsed >= length) {
-          callback();
-        }
-      }
-    }, 250);
-
     return () => clearInterval(interval);
-  });
+  }, [isActive, seconds]);
 
-  const restart = () => {
-    setStartTime(new Date());
-    setElapsed(0);
-  };
-
-  return [elapsed, restart];
+  return (
+    <div className="app">
+      <div className="time">{seconds}s</div>
+      <div className="row">
+        <button
+          className={`button button-primary button-primary-${
+            isActive ? "active" : "inactive"
+          }`}
+          onClick={toggle}
+        >
+          {isActive ? "Pause" : "Start"}
+        </button>
+        <button className="button" onClick={reset}>
+          Reset
+        </button>
+      </div>
+    </div>
+  );
 };
-
-function Timer() {
-  const elapsed = useTimer(10);
-
-  return <span>{elapsed} / 10</span>;
-}
 
 export default Timer;
